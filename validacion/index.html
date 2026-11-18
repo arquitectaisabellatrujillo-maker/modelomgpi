@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel de expertos · Validación del MGPI-Costos</title>
+<meta name="description" content="Formulario de validación del MGPI-Costos: comparación por pares (AHP) de los cinco criterios e Índice de Validez de Contenido.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/tool.css">
+<link rel="stylesheet" href="/assets/panel.css">
+</head>
+<body data-page="validacion">
+
+<!-- Formulario estático para que Netlify detecte los campos -->
+<form name="panel-expertos" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field"><input name="nombre"><input name="profesion"><input name="anios">
+  <input name="sector"><textarea name="componentes_marcados"></textarea><textarea name="ahp_juicios"></textarea>
+  <textarea name="ahp_pesos"></textarea><input name="ahp_rc"><textarea name="ivc"></textarea><input name="aplicabilidad">
+  <textarea name="comentarios"></textarea><input name="fecha">
+</form>
+
+<main class="wrap panel">
+  <div class="panel-intro">
+    <h1>Panel de expertos</h1>
+    <p class="lead">Gracias por apoyar la validación del MGPI-Costos, un instrumento para decidir mejor en el anteproyecto de proyectos de edificación en Colombia. Su criterio profesional define cuánto pesa cada criterio y si los componentes propuestos son pertinentes.</p>
+    <p class="muted">Toma unos 7 minutos. Si quiere ver el instrumento antes, abra la <a href="/herramienta/" target="_blank" rel="noopener">herramienta</a> y cargue el ejemplo. Las respuestas se usan solo con fines académicos y se reportan de forma agregada; su nombre no se publica.</p>
+  </div>
+
+  <form id="pf" novalidate>
+    <section class="sheet psec">
+      <div class="m-head"><div class="m-code">1</div><div><h2>Su perfil</h2><p>El panel busca profesionales con experiencia en proyectos de edificación en Colombia.</p></div></div>
+      <div class="grid2">
+        <div class="field"><label for="nombre">Nombre completo</label><input id="nombre" name="nombre" type="text" required autocomplete="name"></div>
+        <div class="field"><label for="profesion">Profesión</label><select id="profesion" name="profesion" required>
+          <option value="">Seleccione</option><option>Arquitecto(a)</option><option>Ingeniero(a) civil</option><option>Ingeniero(a) estructural</option><option>Constructor(a) / Tecnólogo(a)</option><option>Economista / Administrador(a)</option><option>Otra</option></select></div>
+        <div class="field"><label for="anios">Años de experiencia en edificación</label><input id="anios" name="anios" type="number" min="0" max="60" required></div>
+        <div class="field"><label for="sector">Sector en el que trabaja</label><select id="sector" name="sector" required><option value="">Seleccione</option><option>Público</option><option>Privado</option><option>Público y privado</option></select></div>
+      </div>
+    </section>
+
+    <section class="sheet psec">
+      <div class="m-head"><div class="m-code">2</div><div><h2>Comparación entre criterios</h2>
+        <p>En cada par, marque hacia el lado del criterio que pesa más al decidir sobre un anteproyecto. Cuanto más lejos del centro, más importante. El centro significa igual de importantes.</p></div></div>
+      <details class="small" style="margin-bottom:14px"><summary>Qué significa cada criterio</summary><dl id="crit-def" class="defs"></dl></details>
+      <div class="scale-key small muted"><span>Mucho más importante</span><span>Igual</span><span>Mucho más importante</span></div>
+      <div id="pairs"></div>
+      <div class="ahp-out">
+        <div><h3>Pesos resultantes de sus respuestas</h3><div id="ahp-chart"></div></div>
+        <div id="ahp-cr"></div>
+      </div>
+    </section>
+
+    <section class="sheet psec">
+      <div class="m-head"><div class="m-code">3</div><div><h2>Pertinencia de los criterios</h2>
+        <p>¿Qué tan relevante es cada criterio para evaluar un anteproyecto? 1 no relevante · 2 poco relevante · 3 relevante · 4 muy relevante.</p></div></div>
+      <div id="ivc"></div>
+    </section>
+
+    <section class="sheet psec">
+      <div class="m-head"><div class="m-code">4</div><div><h2>Opinión general</h2></div></div>
+      <div class="field"><label>¿Qué tan aplicable sería el MGPI-Costos en su contexto profesional real?</label>
+        <div class="seg" id="aplic" role="group" aria-label="Aplicabilidad"></div>
+        <div class="seg-labels"><span>1 · Nada aplicable</span><span>4 · Muy aplicable</span></div></div>
+      <div class="field"><label for="comentarios">¿Qué cambiaría, agregaría o quitaría? (opcional)</label><textarea id="comentarios" name="comentarios" placeholder="Un componente que falta, un umbral que ajustaría, un criterio que pesaría distinto"></textarea></div>
+    </section>
+
+    <div class="submit-bar">
+      <p id="form-msg" class="small" role="alert"></p>
+      <button class="btn" type="submit" id="send">Enviar respuestas</button>
+    </div>
+  </form>
+
+  <div id="thanks" class="sheet" hidden>
+    <h2>Respuestas enviadas</h2>
+    <p>Gracias por su tiempo. Sus respuestas quedaron registradas y se sumarán al consolidado del panel, que se publica en la página de <a href="/resultados/">resultados</a>.</p>
+  </div>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
+<script src="/assets/ahp.js"></script>
+<script src="/assets/panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MGPI-Costos · Modelo gerencial para decidir en el anteproyecto</title>
+<meta name="description" content="Instrumento gerencial de planificación integrada para la toma de decisiones en el anteproyecto de proyectos de construcción en Colombia. Trabajo de grado, Maestría en Gerencia de Proyectos, UPB Palmira.">
+<meta property="og:title" content="MGPI-Costos · Decidir bien antes de construir">
+<meta property="og:description" content="Cinco matrices que integran criterios técnicos, financieros y normativos en el anteproyecto.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/home.css">
+</head>
+<body data-page="inicio">
+<main>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-text">
+      <p class="kicker">Trabajo de grado · Maestría en Gerencia de Proyectos · UPB Palmira</p>
+      <h1>Decidir bien antes de construir</h1>
+      <p class="lead">El MGPI-Costos es un instrumento para el gerente de proyecto. Integra criterios técnicos, financieros y normativos en el anteproyecto, cuando una decisión todavía cuesta poco cambiar.</p>
+      <div class="cta">
+        <a class="btn" href="/herramienta/">Evaluar un anteproyecto</a>
+        <a class="btn ghost" href="/validacion/">Participar en el panel de expertos</a>
+      </div>
+    </div>
+    <figure class="curve" aria-labelledby="curve-cap">
+      <svg viewBox="0 0 560 400" role="img" aria-label="Curva de influencia de decisiones: la capacidad de influir en el costo cae a lo largo del proyecto mientras el costo de los cambios sube.">
+        <defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#D6DDDB" stroke-width="1"/></pattern></defs>
+        <rect x="40" y="30" width="500" height="300" fill="url(#g)"/>
+        <line x1="40" y1="330" x2="540" y2="330" stroke="#16232A" stroke-width="1.5"/>
+        <line x1="40" y1="30" x2="40" y2="330" stroke="#16232A" stroke-width="1.5"/>
+        <!-- zona anteproyecto -->
+        <rect class="zone" x="140" y="30" width="100" height="300" fill="#DCE7F2"/>
+        <!-- cota -->
+        <g class="cota" stroke="#1F62A8" stroke-width="1.4" fill="#1F62A8">
+          <line x1="140" y1="16" x2="240" y2="16"/><line x1="140" y1="9" x2="140" y2="24"/><line x1="240" y1="9" x2="240" y2="24"/>
+          <path d="M140 16l9-4v8z"/><path d="M240 16l-9-4v8z"/>
+        </g>
+        <path class="c1" d="M40 52 C 150 58, 230 120, 300 210 S 450 318, 540 322" fill="none" stroke="#1F62A8" stroke-width="3.5"/>
+        <path class="c2" d="M40 318 C 160 314, 260 290, 340 220 S 470 70, 540 48" fill="none" stroke="#AE3626" stroke-width="3" stroke-dasharray="7 5"/>
+        <g font-family="Archivo, sans-serif" font-size="12.5" fill="#46575E">
+          <text x="90" y="350" text-anchor="middle">Factibilidad</text>
+          <text x="190" y="350" text-anchor="middle" fill="#16232A" font-weight="700">Anteproyecto</text>
+          <text x="290" y="350" text-anchor="middle">Diseño</text>
+          <text x="390" y="350" text-anchor="middle">Construcción</text>
+          <text x="490" y="350" text-anchor="middle">Operación</text>
+          <text x="190" y="7" text-anchor="middle" fill="#1F62A8" font-weight="700" font-size="13">MGPI-Costos actúa aquí</text>
+          <text class="lab1" x="48" y="45" fill="#1F62A8" font-weight="650">Capacidad de influir en el costo</text>
+          <text class="lab2" x="48" y="304" fill="#AE3626" font-weight="650">Costo de introducir cambios</text>
+        </g>
+      </svg>
+      <figcaption id="curve-cap" class="small muted">Curva de influencia de decisiones (Paulson, 1976; MacLeamy, 2004), representación esquemática.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band" id="problema">
+  <div class="wrap two">
+    <div>
+      <h2>El problema</h2>
+      <p>En los proyectos de construcción en Colombia, las decisiones del anteproyecto se toman con información fragmentada. Diseño arquitectónico, diseño estructural, especialidades técnicas y presupuesto avanzan por separado, y no hay un esquema que obligue a mirarlos juntos.</p>
+      <p>El resultado aparece en obra: balances para incorporar actividades no previstas, rediseños por normas revisadas tarde y alternativas elegidas solo por su menor costo directo.</p>
+      <blockquote class="q">¿Cómo estructurar un instrumento gerencial de planificación integrada, compuesto por matrices calificativas con porcentajes ponderados y puntos críticos, que sirva de soporte a la toma de decisiones estratégicas en el anteproyecto y mejore el desempeño de costos en proyectos de construcción en Colombia?</blockquote>
+    </div>
+    <div>
+      <table class="tbl facts">
+        <caption class="small muted">Contexto sectorial citado en el documento</caption>
+        <tbody>
+          <tr><td class="fig num">3,53 %</td><td>Variación anual del índice de costos de edificaciones (ICOCED) a marzo de 2025; mano de obra +7,40 %. <span class="src">DANE, 2025</span></td></tr>
+          <tr><td class="fig num">−4,2 %</td><td>Variación del PIB de la construcción en 2023, la más baja entre las ramas de actividad. <span class="src">Findeter, 2024</span></td></tr>
+          <tr><td class="fig num">$36,4 bill.</td><td>Ingresos de las 64 constructoras más grandes en 2024, con utilidades netas en descenso. <span class="src">Supersociedades, 2025</span></td></tr>
+          <tr><td class="fig num">8–12 %</td><td>Sobrecosto promedio atribuido a errores de presupuesto sin instrumentos especializados. <span class="src">OneEstimate, 2024</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="wrap sec" id="objetivos">
+  <h2>Objetivos</h2>
+  <p class="general"><strong>General.</strong> Diseñar un instrumento gerencial de planificación integrada que sirva como herramienta de soporte a la toma de decisiones estratégicas en la etapa de anteproyecto, orientado a mejorar el desempeño de costos en proyectos de construcción en Colombia.</p>
+  <ol class="oe">
+    <li><div class="oe-n">OE1</div><div><h3>Identificar los factores críticos</h3><p>Factores técnicos, financieros y normativos que generan sobrecostos, a partir del estado del arte y de entrevistas con profesionales del sector.</p><p class="small"><span class="tag info">Matrices 1A y 1B</span> <span class="tag warn">Trabajo de campo en curso</span></p></div></li>
+    <li><div class="oe-n">OE2</div><div><h3>Construir el instrumento de evaluación</h3><p>Matrices calificativas que determinan el alcance, el costo y los demás factores del anteproyecto, con porcentajes ponderados y puntos críticos de revisión.</p><p class="small"><span class="tag info">Matriz 2</span> <span class="tag ok">Versión beta disponible</span> <a href="/herramienta/">Abrir la herramienta</a></p></div></li>
+    <li><div class="oe-n">OE3</div><div><h3>Definir los mecanismos de evaluación</h3><p>Matriz de resultados y validación con expertos que ajusta porcentajes y criterios, para dejar una base metodológica replicable.</p><p class="small"><span class="tag info">Matrices 3 y 4 · Panel AHP e IVC</span> <span class="tag warn">Panel abierto</span> <a href="/resultados/">Ver resultados</a></p></div></li>
+  </ol>
+</section>
+
+<section class="band" id="modelo">
+  <div class="wrap">
+    <h2>Cómo funciona el modelo</h2>
+    <p>Cinco matrices encadenadas. El resultado de cada una alimenta la siguiente, desde el diagnóstico de la empresa hasta la decisión registrada.</p>
+    <ol class="flow">
+      <li><b>1A</b><span>Diagnóstico organizacional</span><em>Índice de Madurez Organizacional (IMO)</em></li>
+      <li><b>1B</b><span>Factores críticos</span><em>Índice de criticidad = frecuencia × impacto</em></li>
+      <li><b>2</b><span>Evaluación integral</span><em>5 criterios, 20 componentes, puntaje ponderado</em></li>
+      <li><b>3</b><span>Escenarios</span><em>Optimista, moderado o crítico frente al presupuesto</em></li>
+      <li><b>4</b><span>Decisión y trazabilidad</span><em>Aprobar, ajustar o descartar, con justificación</em></li>
+    </ol>
+    <div class="two" style="margin-top:34px">
+      <div class="sheet">
+        <h3>Criterios de la Matriz 2</h3>
+        <table class="tbl"><thead><tr><th>Criterio</th><th>Dimensión</th><th class="r">Peso preliminar</th></tr></thead><tbody id="crit-table"></tbody></table>
+        <p class="small muted" style="margin-top:8px">Ponderaciones sujetas a validación por el panel de expertos (AHP).</p>
+      </div>
+      <div class="sheet">
+        <h3>Regla de decisión</h3>
+        <p><strong>Paso 1, filtro normativo.</strong> Un incumplimiento mayor (calificación 1) descarta la alternativa, sin importar su puntaje. Un incumplimiento menor (2) impide aprobarla hasta resolverlo.</p>
+        <p><strong>Paso 2, puntaje ponderado.</strong></p>
+        <table class="tbl"><tbody>
+          <tr><td class="num">≥ 4,0</td><td><span class="tag ok">Aprobar</span></td><td>Proceder al diseño ejecutivo.</td></tr>
+          <tr><td class="num">3,0 – 3,99</td><td><span class="tag warn">Ajustar</span></td><td>Corregir criterios con 3 o menos en 15 días hábiles.</td></tr>
+          <tr><td class="num">&lt; 3,0</td><td><span class="tag bad">Descartar</span></td><td>Rediseño conceptual o cambio de enfoque.</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap sec" id="metodologia">
+  <h2>Metodología</h2>
+  <p>Enfoque mixto con predominio cualitativo, diseño exploratorio-descriptivo, no experimental y transversal. El instrumento se valida con juicio experto y verificación de consistencia interna, sin un caso práctico ejecutado.</p>
+  <div class="scroll-x"><table class="tbl phases">
+    <thead><tr><th>Fase</th><th>Actividad principal</th><th>Técnica</th><th>Producto</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. Diagnóstico</strong></td><td>Identificar factores que generan sobrecostos</td><td>Revisión documental, entrevistas semiestructuradas</td><td>Mapa de factores; Matrices 1A y 1B</td></tr>
+      <tr><td><strong>2. Evaluación de herramientas</strong></td><td>Comparar herramientas de gestión y modelos multicriterio</td><td>Análisis comparativo de literatura</td><td>Posicionamiento del instrumento</td></tr>
+      <tr><td><strong>3. Diseño conceptual</strong></td><td>Estructurar criterios, indicadores, pesos y rúbricas</td><td>Panel de expertos (AHP), literatura</td><td>Criterios y rúbricas por componente</td></tr>
+      <tr><td><strong>4. Construcción</strong></td><td>Diseñar las cinco matrices con cálculos automáticos</td><td>Diseño instrumental, prueba de coherencia</td><td>MGPI-Costos versión beta (esta plataforma)</td></tr>
+      <tr><td><strong>5. Validación</strong></td><td>Triangular con juicio experto y consistencia interna</td><td>IVC, RC del AHP, triangulación en tres niveles</td><td>Instrumento validado y replicable</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="band" id="campo">
+  <div class="wrap">
+    <h2>Avance del trabajo de campo</h2>
+    <p>Se han aplicado tres entrevistas semiestructuradas de diez preguntas. El proceso continúa hasta completar al menos seis entrevistados que cubran las dimensiones técnica, financiera y normativa.</p>
+    <div class="three">
+      <div class="who"><b>E1</b><p>Ingeniero estructural, 12 años de experiencia, proyectos institucionales del sector público.</p></div>
+      <div class="who"><b>E2</b><p>Arquitecto director de obra, 2 años de experiencia, proyectos públicos y privados de pequeña y mediana escala.</p></div>
+      <div class="who"><b>E3</b><p>Ingeniero civil, 10 años en presupuestos y gestión presupuestal, proyectos públicos, privados y comerciales.</p></div>
+    </div>
+    <h3 style="margin-top:28px">Coincidencias preliminares</h3>
+    <ul class="findings">
+      <li>El costo directo domina la elección entre alternativas; el plazo y la facilidad constructiva quedan en segundo plano.</li>
+      <li>La normativa se revisa después del diseño y obliga a rediseñar, lo que respalda su uso como filtro.</li>
+      <li>La coordinación entre especialidades es informal y se trabaja sobre versiones distintas de los planos; BIM aparece como la alternativa deseable.</li>
+      <li>No queda registro completo de por qué se elige una alternativa, el vacío que atiende la Matriz 4.</li>
+      <li>El anteproyecto llega con definición insuficiente: alcance poco claro, estudios de suelos tardíos, falta de detalles y especificaciones.</li>
+      <li>Sin cantidades claras no es posible negociar precios por volumen con los proveedores (E2).</li>
+    </ul>
+  </div>
+</section>
+
+<section class="wrap sec" id="equipo">
+  <div class="two">
+    <div>
+      <h2>Equipo</h2>
+      <dl class="team">
+        <dt>Isabella Trujillo López</dt><dd>Estudiante de Maestría en Gerencia de Proyectos · <a href="mailto:Isabella.trujillol@upb.edu.co">Isabella.trujillol@upb.edu.co</a></dd>
+        <dt>Juan Manuel García Calderón</dt><dd>Estudiante de Maestría en Gerencia de Proyectos · <a href="mailto:juanm.garciac@upb.edu.co">juanm.garciac@upb.edu.co</a></dd>
+        <dt>Pedronel Barbosa García</dt><dd>Director, docente asesor · <a href="mailto:Pedronel.barbosa@upb.edu.co">Pedronel.barbosa@upb.edu.co</a></dd>
+      </dl>
+      <p class="small muted">Universidad Pontificia Bolivariana, seccional Palmira.</p>
+    </div>
+    <div>
+      <h2>Referencias principales</h2>
+      <ul class="refs small">
+        <li>AACE International. (2020). <em>Cost estimate classification system</em> (RP 56R-08).</li>
+        <li>Flyvbjerg, B. (2009). Survival of the unfittest. <em>Oxford Review of Economic Policy, 25</em>(3), 344–367.</li>
+        <li>Lozano Serna, S. et al. (2018). Identificación de factores que generan diferencias de tiempo y costos en proyectos de construcción en Colombia. <em>Ingeniería y Ciencia, 14</em>(27), 117–151.</li>
+        <li>MacLeamy, P. (2004). <em>Collaboration, integrated information and the project lifecycle</em>. Construction Users Roundtable.</li>
+        <li>Paulson, B. C. (1976). Designing to reduce construction costs. <em>Journal of the Construction Division, 102</em>(4), 587–592.</li>
+        <li>Polit, D. F. y Beck, C. T. (2006). The content validity index. <em>Research in Nursing &amp; Health, 29</em>(5), 489–497.</li>
+        <li>Project Management Institute. (2017). <em>Guía del PMBOK®</em> (6.ª ed.).</li>
+        <li>Saaty, T. L. (1980). <em>The analytic hierarchy process</em>. McGraw-Hill.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
+<script>
+document.getElementById("crit-table").innerHTML = MGPI.criterios.map(c =>
+  `<tr><td>${c.nombre}${c.filtro ? ' <span class="tag info">Filtro</span>' : ''}</td><td>${c.dim}</td><td class="r num">${c.peso} %</td></tr>`).join("") +
+  `<tr class="total"><td>Total</td><td></td><td class="r num">100 %</td></tr>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resultados del panel de expertos · MGPI-Costos</title>
+<meta name="description" content="Ponderaciones AHP consolidadas e Índice de Validez de Contenido del MGPI-Costos.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/tool.css">
+<style>
+.res{padding-top:40px}
+.res h1{font-size:clamp(2rem,4vw,3rem)}
+.ivc-ok{color:var(--ok);font-weight:700}.ivc-bad{color:var(--bad);font-weight:700}
+.upd{margin-top:40px}
+</style>
+</head>
+<body data-page="resultados">
+<main class="wrap res">
+  <h1>Resultados del panel de expertos</h1>
+  <p class="muted" style="max-width:68ch">Consolidado de la validación del MGPI-Costos (objetivo específico 3): ponderaciones de los criterios por el método AHP, agregadas por media geométrica de los juicios, e Índice de Validez de Contenido (IVC) por criterio según Polit y Beck (2006).</p>
+  <div id="out"><p class="empty">Cargando resultados…</p></div>
+
+  <details class="sheet upd no-print">
+    <summary><strong>Actualizar el consolidado (equipo investigador)</strong></summary>
+    <p class="small" style="margin-top:12px">En Netlify, abra el proyecto, vaya a <em>Forms</em> → <em>panel-expertos</em> y descargue las respuestas en CSV. Cárguelo aquí para calcular el consolidado. Luego descargue <code>resultados.json</code> para publicarlo en el sitio.</p>
+    <input type="file" id="csv" accept=".csv,text/csv">
+    <div id="calc-msg" class="small" style="margin-top:8px"></div>
+    <button class="btn sm" id="dl" hidden style="margin-top:10px">Descargar resultados.json</button>
+  </details>
+</main>
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
+<script src="/assets/ahp.js"></script>
+<script src="/assets/resultados.js"></script>
+</body>
+</html>

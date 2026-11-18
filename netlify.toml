@@ -1,0 +1,4 @@
+[[headers]]
+  for = "/resultados/resultados.json"
+  [headers.values]
+    Cache-Control = "no-cache"

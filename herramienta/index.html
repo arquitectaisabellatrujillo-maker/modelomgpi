@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Herramienta MGPI-Costos · Evaluación del anteproyecto</title>
+<meta name="description" content="Evalúe su anteproyecto con las cinco matrices del MGPI-Costos: diagnóstico, factores críticos, evaluación integral, escenarios y decisión.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/tool.css">
+</head>
+<body data-page="herramienta">
+
+<main class="wrap tool">
+  <div class="tool-head no-print">
+    <div>
+      <h1 class="tool-title">Evaluar un anteproyecto</h1>
+      <p class="muted">Recorra las matrices en orden. Los cálculos se hacen en su navegador: sus datos no se envían a ningún servidor. Guarde el archivo del proyecto para continuar después.</p>
+    </div>
+    <div class="tool-actions">
+      <button class="btn ghost sm" id="btn-ejemplo">Cargar ejemplo</button>
+      <button class="btn ghost sm" id="btn-abrir">Abrir proyecto</button>
+      <button class="btn ghost sm" id="btn-guardar">Guardar proyecto</button>
+      <button class="btn ghost sm" id="btn-nuevo">Nuevo</button>
+      <input type="file" id="file-in" accept=".json,application/json" hidden>
+    </div>
+  </div>
+
+  <ol class="stepper no-print" id="stepper" aria-label="Matrices del instrumento"></ol>
+
+  <section id="view" aria-live="polite"></section>
+
+  <div class="step-nav no-print">
+    <button class="btn ghost" id="prev">Anterior</button>
+    <button class="btn" id="next">Siguiente</button>
+  </div>
+</main>
+
+<script src="/assets/data.js"></script>
+<script src="/assets/common.js"></script>
+<script src="/assets/tool.js"></script>
+</body>
+</html>
