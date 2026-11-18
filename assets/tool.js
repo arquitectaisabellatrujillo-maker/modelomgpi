@@ -1,10 +1,9 @@
 /* MGPI-Costos — lógica de la herramienta (todo se calcula en el navegador) */
 (function(){
 const M = window.MGPI;
-const KEY = "mgpi-costos-proyecto-v2";
+const KEY = "mgpi-costos-proyecto-v3";
 const STEPS = [
-  { id: "p",  code: "0",  lbl: "Datos del proyecto" },
-  { id: "1a", code: "1A", lbl: "Diagnóstico organizacional" },
+  { id: "1a", code: "1A", lbl: "Proyecto y diagnóstico" },
   { id: "1b", code: "1B", lbl: "Factores críticos" },
   { id: "2",  code: "2",  lbl: "Evaluación integral" },
   { id: "3",  code: "3",  lbl: "Escenarios y verificación" },
@@ -103,19 +102,17 @@ const altColor = i => ALT_COLORS[i % ALT_COLORS.length];
 
 /* ---------- estado por paso (para el stepper) ---------- */
 function stepStatus(i){
-  const p = S.proyecto;
-  if (i===0) return p.nombre && p.presupuesto ? "Completo" : "Pendiente";
-  if (i===1){ const r = imo(); return r.complete ? "IMO " + fmt(r.pct,0) + " %" : `${r.answered}/${r.total}`; }
-  if (i===2){ const r = ranking(); return r.length ? r.length + " factores" : "Pendiente"; }
-  if (i===3){ const done = S.alternativas.filter(a => evalAlt(a).complete).length; return `${done}/${S.alternativas.length} alternativas`; }
-  if (i===4){ const n = S.alternativas.filter(a => { const e = evalAlt(a); return e.complete && scenario(a,e)?.esc; }).length; return n ? n + " escenarios" : "Pendiente"; }
-  if (i===5) return S.m4.elegida ? "Decisión registrada" : "Pendiente";
+  if (i===0){ const r = imo(); return r.complete ? "IMO " + fmt(r.pct,0) + " %" : (S.proyecto.nombre ? `${r.answered}/${r.total}` : "Pendiente"); }
+  if (i===1){ const r = ranking(); return r.length ? r.length + " factores" : "Pendiente"; }
+  if (i===2){ const done = S.alternativas.filter(a => evalAlt(a).complete).length; return `${done}/${S.alternativas.length} alternativas`; }
+  if (i===3){ const n = S.alternativas.filter(a => { const e = evalAlt(a); return e.complete && scenario(a,e)?.esc; }).length; return n ? n + " escenarios" : "Pendiente"; }
+  if (i===4) return S.m4.elegida ? "Decisión registrada" : "Pendiente";
 }
 function renderStepper(){
   document.getElementById("stepper").innerHTML = STEPS.map((s,i) => {
-    const st = stepStatus(i), done = /Completo|IMO|factores|registrada|escenarios/.test(st) || (i===3 && st.startsWith(S.alternativas.length + "/"));
+    const st = stepStatus(i), done = /IMO|factores|registrada|escenarios/.test(st) || (i===2 && st.startsWith(S.alternativas.length + "/"));
     return `<li><button data-step="${i}"${i===S.step?' aria-current="step"':''}>
-      <span class="code">${s.code === "0" ? "Inicio" : "Matriz " + s.code}</span><span class="lbl">${s.lbl}</span>
+      <span class="code">Matriz ${s.code}</span><span class="lbl">${s.lbl}</span>
       <span class="st${done?' done':''}">${esc(st)}</span></button></li>`;
   }).join("");
   document.querySelectorAll("#stepper button").forEach(b => b.onclick = () => go(+b.dataset.step));
@@ -129,31 +126,21 @@ const seg = (name, val, n=5, cls="") => `<div class="seg ${cls}" role="group">${
 /* ---------- vistas ---------- */
 const V = {};
 
-V.p = () => {
-  const p = S.proyecto;
-  const f = (id, lab, type="text", extra="") => `<div class="field"><label for="p-${id}">${lab}</label><input id="p-${id}" type="${type}" data-p="${id}" value="${esc(p[id])}" ${extra}></div>`;
-  return `${head("0","Datos del proyecto","Lo mínimo para empezar. El presupuesto y la reserva se usan en la Matriz 3 para proyectar los escenarios.")}
-  <div class="sheet">
-    <div class="grid2">
-      ${f("nombre","Nombre del proyecto")}
-      ${f("empresa","Empresa o entidad")}
-      <div class="field"><label for="p-tipologia">Tipología</label><select id="p-tipologia" data-p="tipologia">
-        ${["","Vivienda unifamiliar","Vivienda multifamiliar","Institucional","Comercial","Oficinas","Salud","Educación","Mixto","Otro"].map(o=>`<option${o===p.tipologia?" selected":""} value="${o}">${o||"Seleccione"}</option>`).join("")}</select></div>
-      <div class="field"><label for="p-sector">Sector</label><select id="p-sector" data-p="sector">${["Privado","Público"].map(o=>`<option${o===p.sector?" selected":""}>${o}</option>`).join("")}</select></div>
-      ${f("presupuesto","Presupuesto disponible (COP, sin puntos)","text",'inputmode="numeric" placeholder="Ej. 4500000000"')}
-      ${f("reserva","Reserva para imprevistos (%)","number",'min="0" max="50" step="1"')}
-    </div>
-  </div>`;
-};
-
 V["1a"] = () => {
   const r = imo();
-  const rows = M.m1a.dimensiones.map(d => `<div class="dim-title"><h3>${esc(d.nombre)}</h3></div>` + d.items.map(it => `
-    <div class="item"><div><span class="code">${it.id}</span>${esc(it.txt)}
+  const rows = M.m1a.dimensiones.map(d => d.items.map(it => `
+    <div class="item"><div><strong>${esc(d.nombre)}.</strong> ${esc(it.txt)}
       ${S.m1a[it.id] ? `<p class="chosen">${S.m1a[it.id]} · ${esc(M.m1a.escala[S.m1a[it.id]-1])}</p>`:""}</div>
       <div>${seg("1a:"+it.id, S.m1a[it.id])}<div class="seg-labels"><span>No existe</span><span>Se aplica siempre</span></div></div></div>`).join("")).join("");
   const chart = hbarChart({ rows: r.dims.map(d => ({label: d.nombre, values:[{v:d.avg, color:"#1F62A8", name:"Promedio"}]})), labelW:160, width:420, fs:13 });
-  return `${head("1A","Diagnóstico organizacional","Califique qué tan establecida está cada práctica en la empresa. El resultado es el Índice de Madurez Organizacional (IMO), que muestra qué tan preparada está la organización y qué brechas debe cerrar.")}
+  const p = S.proyecto;
+  const f = (id, lab, type="text", extra="") => `<div class="field"><label for="p-${id}">${lab}</label><input id="p-${id}" type="${type}" data-p="${id}" value="${esc(p[id])}" ${extra}></div>`;
+  return `${head("1A","Proyecto y diagnóstico","Identifique el proyecto y califique qué tan establecida está cada práctica en la empresa. El resultado es el Índice de Madurez Organizacional (IMO).")}
+  <div class="sheet" style="margin-bottom:20px"><div class="grid3">
+      ${f("nombre","Nombre del proyecto")}
+      ${f("presupuesto","Presupuesto disponible (COP)","text",'inputmode="numeric" placeholder="Ej. 4500000000"')}
+      ${f("reserva","Reserva para imprevistos (%)","number",'min="0" max="50" step="1"')}
+  </div></div>
   <div class="layout2">
     <div class="sheet">${rows}</div>
     <div>
@@ -171,36 +158,26 @@ V["1a"] = () => {
 V["1b"] = () => {
   const rk = ranking(), top5 = rk.slice(0,5);
   const rows = S.m1b.map((f,idx) => {
-    const ic = f.f && f.i ? f.f*f.i : 0, cl = ic ? claseIC(ic) : null;
-    const critName = M.criterios.find(c => c.id === f.criterio)?.corto || "";
-    return `<tr>
-      <td>${f.custom ? `<input type="text" data-fac="${idx}" value="${esc(f.txt)}" aria-label="Descripción del factor">` : esc(f.txt)}
-        <div class="small muted">${esc(f.dim)} · se evalúa en: ${esc(critName)}</div></td>
-      <td style="min-width:190px">${seg("f:"+idx, f.f)}</td>
-      <td style="min-width:190px">${seg("i:"+idx, f.i)}</td>
-      <td class="r num"><strong>${ic||"—"}</strong></td>
-      <td>${cl ? `<span class="tag ${cl.clase==="crit"?"bad":cl.clase==="alto"?"warn":"neutral"}">${cl.nombre}</span>`:""}</td>
-      <td>${f.custom?`<button class="btn ghost sm" data-delfac="${idx}" aria-label="Eliminar factor">Quitar</button>`:""}</td></tr>`;
+    const ic = f.f && f.i ? f.f*f.i : 0, cl = ic ? claseIC(ic) : null, on = f.on || f.f || f.i;
+    return `<div class="fac${on?' on':''}">
+      <label class="fac-chk"><input type="checkbox" data-on="${idx}"${on?" checked":""}> ${f.custom ? `<input type="text" data-fac="${idx}" value="${esc(f.txt)}" aria-label="Descripción del factor">` : esc(f.txt)}</label>
+      ${on ? `<div class="fac-rate"><div><span class="small muted">Frecuencia</span>${seg("f:"+idx, f.f)}</div><div><span class="small muted">Impacto en costo</span>${seg("i:"+idx, f.i)}</div>
+        <div class="fac-ic">${ic?`<strong class="num">${ic}</strong> <span class="tag ${cl.clase==="crit"?"bad":cl.clase==="alto"?"warn":"neutral"}">${cl.nombre}</span>`:""}</div></div>` : ""}
+    </div>`;
   }).join("");
-  const chart = rk.length ? hbarChart({ rows: rk.slice(0,10).map(f => ({label: f.txt.length>34 ? f.txt.slice(0,33)+"…" : f.txt,
+  const chart = rk.length ? hbarChart({ rows: rk.slice(0,10).map(f => ({label: f.txt,
       values:[{v:f.ic, d:0, color: f.ic>=16?"#AE3626":f.ic>=9?"#C98A1A":"#8796A0", name:"Índice de criticidad"}]})),
-      max:25, ticks:[0,5,10,15,20,25], marks:[{v:16,label:"Crítico",color:"#AE3626"}], labelW:250, width:600, fs:13 }) : `<p class="empty">Califique la frecuencia y el impacto de los factores para ver el ranking.</p>`;
-  return `${head("1B","Factores críticos","Califique la frecuencia y el impacto de cada factor en los proyectos de la empresa. El Índice de Criticidad (IC = frecuencia × impacto, de 1 a 25) ordena los factores y define qué criterios de la Matriz 2 requieren más atención. Puede agregar factores propios.")}
-  <div class="sheet scroll-x"><table class="tbl">
-    <thead><tr><th>Factor</th><th>Frecuencia<br><span class="small muted">1 casi nunca · 5 casi siempre</span></th><th>Impacto en costo<br><span class="small muted">1 muy bajo · 5 muy alto</span></th><th class="r">IC</th><th>Nivel</th><th></th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:14px">
-      <div class="field" style="margin:0"><label for="nf-crit">Agregar un factor propio que se evalúa en</label>
-        <select id="nf-crit">${M.criterios.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join("")}</select></div>
-      <button class="btn ghost sm" id="add-fac">Agregar factor</button>
-    </div>
-  </div>
-  <div class="layout2" style="margin-top:20px">
-    <div class="sheet"><h3>Ranking de criticidad</h3>${chart}</div>
-    <div class="sheet"><h3>Los cinco factores más críticos</h3>
-      ${top5.length ? `<ol class="critical-list" style="padding-left:0">${top5.map((f,i)=>`<li><strong class="num">${i+1}.</strong><span>${esc(f.txt)} <span class="small muted">· IC ${f.ic} · ${esc(M.criterios.find(c=>c.id===f.criterio).nombre)}</span></span></li>`).join("")}</ol>
-      <p class="small muted" style="margin-top:12px">Estos factores se señalan en la Matriz 2 junto al criterio donde se evalúan, para que el equipo les preste especial atención.</p>` : `<p class="muted">Aún no hay factores calificados.</p>`}
-    </div>
+      max:25, ticks:[0,5,10,15,20,25], marks:[{v:16,label:"Crítico",color:"#AE3626"}], labelW:200, width:440, fs:13 }) : `<p class="muted small">Marque los factores que ocurren en su empresa y califíquelos para ver el ranking.</p>`;
+  return `${head("1B","Factores críticos","Marque los factores que suelen ocurrir en los proyectos de la empresa y califique su frecuencia e impacto (1 bajo · 5 alto). Índice de criticidad = frecuencia × impacto.")}
+  <div class="layout2">
+    <div class="sheet">${rows}
+      <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:14px">
+        <div class="field" style="margin:0"><label for="nf-crit" class="small">Agregar un factor propio, evaluado en</label>
+          <select id="nf-crit">${M.criterios.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join("")}</select></div>
+        <button class="btn ghost sm" id="add-fac">Agregar factor</button>
+      </div></div>
+    <div class="sheet"><h3>Ranking de criticidad</h3>${chart}
+      ${top5.length ? `<p class="small muted" style="margin-top:10px">Los cinco más críticos se señalan en la Matriz 2 junto al criterio donde se evalúan.</p>` : ""}</div>
   </div>`;
 };
 
@@ -217,8 +194,9 @@ V["2"] = () => {
     const head2 = `<div class="dim-title"><h3>${esc(c.nombre)}${c.filtro?' <span class="tag info" style="vertical-align:middle">Filtro</span>':''}</h3>
       <span class="crit-sum">Peso <span class="w">${S.pesos[c.id]} %</span>${alt.det?` · Promedio <strong class="num">${isFinite(sc)?fmt(sc):"—"}</strong>`:""}</span></div>
       ${flags.length ? `<p class="flag">Factor crítico (1B): ${flags.map(f=>esc(f.txt)).join("; ")}</p>`:""}`;
-    if (!alt.det) return head2 + `<p class="help">${esc(c.ayuda)}</p>
-      <div class="rub" role="radiogroup" aria-label="${esc(c.nombre)}">${c.rubrica.map((t,k)=>{ const v=k+1; return `<button type="button" role="radio" aria-checked="${alt.q[c.id]===v}" data-q="${c.id}" data-v="${v}"><b>${v}</b><span>${esc(t)}</span></button>`; }).reverse().join("")}</div>`;
+    if (!alt.det) return head2 + `<div class="item"><div>${alt.q[c.id] ? `<p class="chosen" style="margin:0"><strong>${alt.q[c.id]}:</strong> ${esc(c.rubrica[alt.q[c.id]-1])}</p>` : `<p class="help" style="margin:0">${esc(c.ayuda)}</p>`}
+        <details class="small" style="margin-top:4px"><summary>Ver rúbrica</summary><ol style="padding-left:18px;margin:6px 0 0">${c.rubrica.map(t=>`<li>${esc(t)}</li>`).join("")}</ol></details></div>
+      <div>${c.rubrica.length ? `<div class="seg sc" role="group" aria-label="${esc(c.nombre)}">${[1,2,3,4,5].map(v=>`<button type="button" data-q="${c.id}" data-v="${v}" aria-pressed="${alt.q[c.id]===v}" title="${esc(c.rubrica[v-1])}">${v}</button>`).join("")}</div><div class="seg-labels"><span>Crítico</span><span>Muy alto</span></div>` : ""}</div></div>`;
     return head2 + c.componentes.map(k => `<div class="item"><div><span class="code">${k.id}</span><strong>${esc(k.nombre)}</strong>
         ${alt.s[k.id] ? `<p class="chosen">${esc(k.r[alt.s[k.id]-1])}</p>` : `<p class="help">${esc(k.ayuda)}</p>`}</div>
         <div>${seg("2:"+k.id, alt.s[k.id], 5, "sc")}
@@ -231,7 +209,7 @@ V["2"] = () => {
       marks:[{v:3,label:"Ajustar",color:"#9A6500",anchor:"end"},{v:4,label:"Aprobar",color:"#2C7543"}] });
   const legend = `<div class="legend">${S.alternativas.map((a,i)=>`<span><i style="background:${altColor(i)}"></i>${esc(a.nombre)}</span>`).join("")}</div>`;
 
-  return `${head("2","Evaluación integral del anteproyecto","Elija, para cada criterio, la descripción que mejor representa la alternativa. Si necesita más precisión, active el detalle por componentes.")}
+  return `${head("2","Evaluación integral del anteproyecto","Califique cada criterio de 1 a 5. Al elegir, verá la descripción de la rúbrica. Si necesita más precisión, active el detalle por componentes.")}
   <div class="alt-tabs" role="tablist">${tabs}</div>
   <div class="layout2">
     <div class="sheet">
@@ -300,7 +278,7 @@ V["3"] = () => {
   const checks = [];
   const add = (ok, txt) => checks.push({ok, txt});
   const r1a = imo(); add(r1a.complete, r1a.complete ? `Matriz 1A completa (IMO ${fmt(r1a.pct,0)} %).` : `Matriz 1A incompleta: ${r1a.answered} de ${r1a.total} ítems.`);
-  const rk = ranking(); add(rk.length >= 10, rk.length >= 10 ? `Matriz 1B con ${rk.length} factores calificados.` : `Matriz 1B con ${rk.length} factores calificados; el instrumento pide al menos 10.`);
+  const rk = ranking(); add(rk.length >= 3, rk.length >= 3 ? `Matriz 1B con ${rk.length} factores calificados.` : `Matriz 1B con ${rk.length} factores calificados; califique al menos 3.`);
   const wsum = Object.values(S.pesos).reduce((a,b)=>a+(+b||0),0); add(wsum===100, `Las ponderaciones suman ${wsum} %.`);
   add(isFinite(P), isFinite(P) ? `Presupuesto disponible registrado: ${money(P)}.` : "Falta el presupuesto disponible (Inicio).");
   S.alternativas.forEach((a,i) => {
@@ -381,7 +359,7 @@ function render(){
   Tip.bind(v);
   document.getElementById("prev").disabled = S.step === 0;
   const nx = document.getElementById("next");
-  nx.textContent = S.step === STEPS.length-1 ? "Volver al inicio" : "Siguiente: " + (STEPS[S.step+1].code==="0"?"":"Matriz "+STEPS[S.step+1].code);
+  nx.textContent = S.step === STEPS.length-1 ? "Volver al inicio" : "Siguiente: Matriz " + STEPS[S.step+1].code;
   bind(v);
 }
 function rerenderKeepScroll(){ const y = scrollY; render(); scrollTo(0,y); }
@@ -402,11 +380,12 @@ function bind(v){
     if (a.det) M.criterios.forEach(c => { if (a.q[c.id]) c.componentes.forEach(k => { if (!a.s[k.id]) a.s[k.id] = a.q[c.id]; }); });
     save(); rerenderKeepScroll(); };
   v.querySelectorAll("[data-p]").forEach(i => i.oninput = () => { S.proyecto[i.dataset.p] = i.value; save(); renderStepper(); });
+  v.querySelectorAll("[data-on]").forEach(c => c.onchange = () => { const f = S.m1b[+c.dataset.on]; f.on = c.checked; if (!c.checked){ f.f = 0; f.i = 0; } save(); rerenderKeepScroll(); });
   v.querySelectorAll("[data-fac]").forEach(i => i.oninput = () => { S.m1b[+i.dataset.fac].txt = i.value; save(); });
   v.querySelectorAll("[data-delfac]").forEach(b => b.onclick = () => { S.m1b.splice(+b.dataset.delfac,1); save(); rerenderKeepScroll(); });
   const addf = v.querySelector("#add-fac"); if (addf) addf.onclick = () => {
     const c = v.querySelector("#nf-crit").value, crit = M.criterios.find(x=>x.id===c);
-    S.m1b.push({ id:"P"+Date.now(), txt:"Nuevo factor", dim: crit.dim.split(" ")[0], criterio:c, f:0, i:0, custom:true });
+    S.m1b.push({ id:"P"+Date.now(), txt:"Nuevo factor", dim: crit.dim.split(" ")[0], criterio:c, f:0, i:0, custom:true, on:true });
     save(); rerenderKeepScroll(); const ins = v.ownerDocument.querySelectorAll("[data-fac]"); ins[ins.length-1]?.select(); };
   v.querySelectorAll("[data-alt]").forEach(b => b.onclick = () => { S.alt = +b.dataset.alt; save(); rerenderKeepScroll(); });
   const adda = v.querySelector("#add-alt"); if (adda) adda.onclick = () => { S.alternativas.push(newAlt(S.alternativas.length)); S.alt = S.alternativas.length-1; save(); rerenderKeepScroll(); };
@@ -458,7 +437,7 @@ function example(){
     tipologia:"Vivienda multifamiliar", sector:"Privado", responsable:"Gerente de proyecto", presupuesto:"9500000000", reserva:10 });
   [3,3,2,2,2].forEach((v,i) => e.m1a["1A-0"+(i+1)] = v);
   const fi = [[4,5],[4,4],[4,5],[4,4],[3,4],[3,5],[3,5],[3,4],[3,4],[2,3]];
-  e.m1b.forEach((f,i) => { f.f = fi[i][0]; f.i = fi[i][1]; });
+  e.m1b.forEach((f,i) => { f.f = fi[i][0]; f.i = fi[i][1]; f.on = true; });
   const ids = M.criterios.map(c => c.id);
   const mk = (nombre, costo, arr) => ({ nombre, costo, q: Object.fromEntries(ids.map((id,i)=>[id,arr[i]])), s:{}, det:false });
   e.alternativas = [
@@ -466,7 +445,7 @@ function example(){
     mk("B · Estructura metálica importada", "9300000000", [3,3,3,4,3]),
     mk("C · Prefabricado no convencional", "10400000000", [2,2,4,3,2])
   ];
-  e.step = 3;
+  e.step = 2;
   return e;
 }
 
