@@ -96,6 +96,20 @@ function scenario(alt, ev){
   }
   return { ce, c, cp, lo, hi, P, res, esc, var: isFinite(P) ? (cp/P - 1)*100 : NaN };
 }
+/* Matriz de resultados: decisión (M2) × escenario (M3) */
+const RESULTADOS = {
+  "APROBAR|OPTIMISTA": ["Viable", "ok", "Proceder al diseño ejecutivo."],
+  "APROBAR|MODERADO":  ["Viable con reserva", "ok", "Proceder comprometiendo la reserva para imprevistos y trabajar los puntos de revisión del riesgo."],
+  "APROBAR|CRÍTICO":   ["Viable técnicamente, no en costo", "warn", "No aprobar todavía: revisar el costo estimado y la calificación financiera; tratar como Ajustar."],
+  "AJUSTAR|OPTIMISTA": ["Ajustable", "warn", "Corregir los criterios con 3 o menos en máximo 15 días hábiles y reevaluar."],
+  "AJUSTAR|MODERADO":  ["Ajustable con reserva", "warn", "Corregir los criterios con 3 o menos y prever el uso de la reserva."],
+  "AJUSTAR|CRÍTICO":   ["Ajuste mayor", "bad", "Revisar alcance, sistema constructivo o presupuesto antes de reevaluar."],
+  "DESCARTAR|OPTIMISTA": ["No viable por calidad del anteproyecto", "bad", "El costo está en rango, pero los criterios o la norma fallan: rediseño conceptual conservando lo que funciona en costo."],
+  "DESCARTAR|MODERADO":  ["No viable por calidad del anteproyecto", "bad", "El costo es manejable, pero los criterios o la norma fallan: rediseño conceptual."],
+  "DESCARTAR|CRÍTICO":   ["No viable", "bad", "Descartar y documentar los criterios deficientes."]
+};
+const resultado = (dec, esc) => dec && esc ? RESULTADOS[dec + "|" + esc] : null;
+const resTag = r => r ? `<span class="tag ${r[1]}">${r[0]}</span>` : `<span class="tag neutral">Sin datos</span>`;
 const decTag = d => d ? `<span class="tag ${d==="APROBAR"?"ok":d==="AJUSTAR"?"warn":"bad"}">${d[0]+d.slice(1).toLowerCase()}</span>` : `<span class="tag neutral">Incompleta</span>`;
 const escTag = e => e ? `<span class="tag ${e==="OPTIMISTA"?"ok":e==="MODERADO"?"warn":"bad"}">${e[0]+e.slice(1).toLowerCase()}</span>` : `<span class="tag neutral">Sin datos</span>`;
 const altColor = i => ALT_COLORS[i % ALT_COLORS.length];
@@ -245,7 +259,7 @@ V["3"] = () => {
     <td><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${altColor(i)};margin-right:6px"></i>${esc(a.nombre)}</td>
     <td class="r num">${s?money(s.ce):"—"}</td><td class="r num">${isFinite(evs[i].crit.riesgo)?fmt(evs[i].crit.riesgo):"—"}</td>
     <td class="r num">${s?fmt(s.c*100,1)+" %":"—"}</td><td class="r num"><strong>${s?money(s.cp):"—"}</strong></td>
-    <td class="r num">${s&&isFinite(s.var)?(s.var>0?"+":"")+fmt(s.var,1)+" %":"—"}</td><td>${escTag(s?.esc)}</td></tr>`; }).join("");
+    <td class="r num">${s&&isFinite(s.var)?(s.var>0?"+":"")+fmt(s.var,1)+" %":"—"}</td><td>${escTag(s?.esc)}</td><td>${resTag(resultado(evs[i].dec, s?.esc))}</td></tr>`; }).join("");
 
   // gráfico de banda de costo
   const valid = sc.map((s,i)=>({s,i})).filter(x=>x.s);
@@ -292,8 +306,11 @@ V["3"] = () => {
   });
   const okAll = checks.every(c=>c.ok);
   return `${head("3","Escenarios y verificación","Proyecta el costo de cada alternativa según su nivel de riesgo y lo compara con el presupuesto y la reserva para imprevistos. Además verifica que la información esté completa y sea coherente entre matrices. Son proyecciones para orientar la decisión, no resultados de obra.")}
-  <div class="sheet scroll-x"><table class="tbl"><thead><tr><th>Alternativa</th><th class="r">Costo estimado</th><th class="r">Riesgo (M2)</th><th class="r">Contingencia</th><th class="r">Costo proyectado</th><th class="r">Frente al presupuesto</th><th>Escenario</th></tr></thead><tbody>${rows}</tbody></table>
-  <p class="small muted" style="margin-top:10px">Contingencia = ${M.m3.cMin} % + (5 − puntaje de riesgo) / 4 × ${M.m3.cMax-M.m3.cMin} %. Un riesgo de 5 implica ${M.m3.cMin} % y un riesgo de 1 implica ${M.m3.cMax} %. Costo proyectado = costo estimado × (1 + contingencia). <strong>Optimista</strong>: queda dentro del presupuesto. <strong>Moderado</strong>: lo supera, pero la reserva lo cubre. <strong>Crítico</strong>: supera presupuesto y reserva.</p></div>
+  <div class="sheet scroll-x"><table class="tbl"><thead><tr><th>Alternativa</th><th class="r">Costo estimado</th><th class="r">Riesgo (M2)</th><th class="r">Contingencia</th><th class="r">Costo proyectado</th><th class="r">Frente al presupuesto</th><th>Escenario</th><th>Resultado</th></tr></thead><tbody>${rows}</tbody></table>
+  <p class="small muted" style="margin-top:10px">Contingencia = ${M.m3.cMin} % + (5 − puntaje de riesgo) / 4 × ${M.m3.cMax-M.m3.cMin} %. Un riesgo de 5 implica ${M.m3.cMin} % y un riesgo de 1 implica ${M.m3.cMax} %. Costo proyectado = costo estimado × (1 + contingencia). <strong>Optimista</strong>: queda dentro del presupuesto. <strong>Moderado</strong>: lo supera, pero la reserva lo cubre. <strong>Crítico</strong>: supera presupuesto y reserva.</p>
+  <details class="small" style="margin-top:8px"><summary><strong>Matriz de resultados</strong>: cómo se combina la decisión de la Matriz 2 con el escenario</summary>
+  <table class="tbl" style="margin-top:8px"><thead><tr><th>Decisión (M2)</th><th>Escenario (M3)</th><th>Resultado</th><th>Acción</th></tr></thead><tbody>
+  ${Object.entries(RESULTADOS).map(([k,r])=>{ const [d,e]=k.split("|"); return `<tr><td>${d[0]+d.slice(1).toLowerCase()}</td><td>${e[0]+e.slice(1).toLowerCase()}</td><td>${resTag(r)}</td><td>${esc(r[2])}</td></tr>`; }).join("")}</tbody></table></details></div>
   <div class="layout2" style="margin-top:20px">
     <div class="sheet"><h3>Costo proyectado frente al presupuesto</h3>${chart}</div>
     <div class="sheet"><h3>Verificación de consistencia</h3>
@@ -309,12 +326,13 @@ V["4"] = () => {
   const cands = S.alternativas.map((a,i)=>({a,i,e:evs[i],s:sc[i]})).filter(x => x.e.dec && x.e.dec !== "DESCARTAR")
     .sort((x,y) => (x.e.dec==="APROBAR"?0:1)-(y.e.dec==="APROBAR"?0:1) || (order[x.s?.esc]??3)-(order[y.s?.esc]??3) || y.e.total-x.e.total);
   const sug = cands[0];
-  const m2rows = S.alternativas.map((a,i)=>`<tr><td>${esc(a.nombre)}</td>${M.criterios.map(c=>`<td class="r num">${isFinite(evs[i].crit[c.id])?fmt(evs[i].crit[c.id]):"—"}</td>`).join("")}<td class="r num"><strong>${evs[i].answered?fmt(evs[i].total):"—"}</strong></td><td>${decTag(evs[i].dec)}</td><td>${escTag(sc[i]?.esc)}</td></tr>`).join("");
+  const m2rows = S.alternativas.map((a,i)=>`<tr><td>${esc(a.nombre)}</td>${M.criterios.map(c=>`<td class="r num">${isFinite(evs[i].crit[c.id])?fmt(evs[i].crit[c.id]):"—"}</td>`).join("")}<td class="r num"><strong>${evs[i].answered?fmt(evs[i].total):"—"}</strong></td><td>${decTag(evs[i].dec)}</td><td>${escTag(sc[i]?.esc)}</td><td>${resTag(resultado(evs[i].dec, sc[i]?.esc))}</td></tr>`).join("");
   const just = S.alternativas.map((a,i)=>{ const e = evs[i]; if(!e.dec) return "";
     let t = `<p><strong>${esc(a.nombre)} — ${e.dec.toLowerCase()}.</strong> ${esc(e.motivo)} `;
     if (e.dec==="AJUSTAR") t += `Ajustar: ${e.criticos.concat(e.revisar).map(k=>k.nombre).join("; ")||"criterios con 3 o menos"}. Plazo máximo de revisión: ${M.decision.plazoAjuste}.`;
     if (e.dec==="DESCARTAR") t += `Puntos deficientes: ${e.criticos.map(k=>k.nombre).join("; ")||"puntaje global insuficiente"}. Se recomienda rediseño conceptual o cambio de enfoque.`;
     if (e.dec==="APROBAR") t += `Proceder al diseño ejecutivo.${e.revisar.length?` Atender durante el desarrollo: ${e.revisar.map(k=>k.nombre).join("; ")}.`:""}`;
+    const rr = resultado(e.dec, sc[i]?.esc); if (rr) t += ` <strong>Resultado: ${rr[0].toLowerCase()}.</strong> ${rr[2]}`;
     return t + "</p>"; }).join("");
   return `${head("4","Decisión y trazabilidad","Consolida las matrices anteriores en un registro único: qué se evaluó, cómo se calificó, qué se decidió y por qué. Imprímalo o guárdelo como PDF para el acta del proyecto.")}
   <div class="no-print" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap"><button class="btn" id="btn-print">Descargar reporte en PDF</button><button class="btn ghost" id="btn-guardar2">Guardar proyecto</button></div>
@@ -334,7 +352,7 @@ V["4"] = () => {
     ${rk.length?`<table class="tbl"><thead><tr><th>#</th><th>Factor</th><th>Criterio asociado</th><th class="r">IC</th></tr></thead><tbody>${rk.map((f,i)=>`<tr><td>${i+1}</td><td>${esc(f.txt)}</td><td>${esc(M.criterios.find(c=>c.id===f.criterio).nombre)}</td><td class="r num">${f.ic}</td></tr>`).join("")}</tbody></table>`:"<p class='muted'>Sin diligenciar.</p>"}
 
     <h3>Matriz 2 · Evaluación integral</h3>
-    <div class="scroll-x"><table class="tbl"><thead><tr><th>Alternativa</th>${M.criterios.map(c=>`<th class="r">${c.corto}<br><span class="small muted">${S.pesos[c.id]} %</span></th>`).join("")}<th class="r">Total</th><th>Decisión</th><th>Escenario</th></tr></thead><tbody>${m2rows}</tbody></table></div>
+    <div class="scroll-x"><table class="tbl"><thead><tr><th>Alternativa</th>${M.criterios.map(c=>`<th class="r">${c.corto}<br><span class="small muted">${S.pesos[c.id]} %</span></th>`).join("")}<th class="r">Total</th><th>Decisión</th><th>Escenario</th><th>Resultado</th></tr></thead><tbody>${m2rows}</tbody></table></div>
     <p class="small muted">Ponderaciones: ${esc(S.pesosFuente)}.</p>
 
     <h3>Matriz 3 · Escenarios</h3>
