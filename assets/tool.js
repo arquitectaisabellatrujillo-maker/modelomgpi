@@ -152,9 +152,12 @@ V["1a"] = () => {
   return `${head("1A","Proyecto y diagnóstico","Identifique el proyecto y califique qué tan establecida está cada práctica en la empresa. El resultado es el Índice de Madurez Organizacional (IMO).")}
   <div class="sheet" style="margin-bottom:20px"><div class="grid3">
       ${f("nombre","Nombre del proyecto")}
+      <div class="field"><label for="p-tipologia">Tipo de proyecto</label><select id="p-tipologia" data-p="tipologia">
+        ${["","Vivienda unifamiliar","Vivienda multifamiliar","Institucional","Comercial","Oficinas","Salud","Educación","Mixto","Otro"].map(o=>`<option${o===p.tipologia?" selected":""} value="${o}">${o||"Seleccione"}</option>`).join("")}</select></div>
+      <div class="field"><label for="p-sector">Sector</label><select id="p-sector" data-p="sector">${["Privado","Público"].map(o=>`<option${o===p.sector?" selected":""}>${o}</option>`).join("")}</select></div>
       ${f("presupuesto","Presupuesto disponible (COP)","text",'inputmode="numeric" placeholder="Ej. 4500000000"')}
       ${f("reserva","Reserva para imprevistos (%)","number",'min="0" max="50" step="1"')}
-  </div></div>
+  </div>${p.sector==="Público"?'<p class="small muted" style="margin:0">En proyectos públicos, la viabilidad financiera se califica comparando el costo con el presupuesto disponible.</p>':''}</div>
   <div class="layout2">
     <div class="sheet">${rows}</div>
     <div>
@@ -397,7 +400,7 @@ function bind(v){
   const det = v.querySelector("#det"); if (det) det.onchange = () => { const a = S.alternativas[S.alt]; a.det = det.checked;
     if (a.det) M.criterios.forEach(c => { if (a.q[c.id]) c.componentes.forEach(k => { if (!a.s[k.id]) a.s[k.id] = a.q[c.id]; }); });
     save(); rerenderKeepScroll(); };
-  v.querySelectorAll("[data-p]").forEach(i => i.oninput = () => { S.proyecto[i.dataset.p] = i.value; save(); renderStepper(); });
+  v.querySelectorAll("[data-p]").forEach(i => { i.oninput = () => { S.proyecto[i.dataset.p] = i.value; save(); renderStepper(); }; if (i.tagName === "SELECT") i.onchange = () => { S.proyecto[i.dataset.p] = i.value; save(); rerenderKeepScroll(); }; });
   v.querySelectorAll("[data-on]").forEach(c => c.onchange = () => { const f = S.m1b[+c.dataset.on]; f.on = c.checked; if (!c.checked){ f.f = 0; f.i = 0; } save(); rerenderKeepScroll(); });
   v.querySelectorAll("[data-fac]").forEach(i => i.oninput = () => { S.m1b[+i.dataset.fac].txt = i.value; save(); });
   v.querySelectorAll("[data-delfac]").forEach(b => b.onclick = () => { S.m1b.splice(+b.dataset.delfac,1); save(); rerenderKeepScroll(); });
