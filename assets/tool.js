@@ -15,7 +15,7 @@ const COMPS = M.criterios.flatMap(c => c.componentes.map(k => ({...k, crit: c.id
 function blank(){
   return {
     v: 1, step: 0, alt: 0,
-    proyecto: { nombre:"", empresa:"", tipologia:"", sector:"Privado", responsable:"", fecha: new Date().toLocaleDateString("sv"),
+    proyecto: { nombre:"", empresa:"", tipologia:"", sector:"Privado", responsable:"", objetivo:"", fecha: new Date().toLocaleDateString("sv"),
                 presupuesto:"", reserva: M.m3.reservaDefecto },
     m1a: {},
     m1b: M.m1b.factores.map(f => ({...f, f:0, i:0})),
@@ -98,16 +98,19 @@ function scenario(alt, ev){
 }
 /* Matriz de resultados: decisión (M2) × escenario (M3) */
 const RESULTADOS = {
-  "APROBAR|OPTIMISTA": ["Viable", "ok", "Proceder al diseño ejecutivo."],
-  "APROBAR|MODERADO":  ["Viable con reserva", "ok", "Proceder comprometiendo la reserva para imprevistos y trabajar los puntos de revisión del riesgo."],
-  "APROBAR|CRÍTICO":   ["Viable técnicamente, no en costo", "warn", "No aprobar todavía: revisar el costo estimado y la calificación financiera; tratar como Ajustar."],
-  "AJUSTAR|OPTIMISTA": ["Ajustable", "warn", "Corregir los criterios con 3 o menos en máximo 15 días hábiles y reevaluar."],
-  "AJUSTAR|MODERADO":  ["Ajustable con reserva", "warn", "Corregir los criterios con 3 o menos y prever el uso de la reserva."],
-  "AJUSTAR|CRÍTICO":   ["Ajuste mayor", "bad", "Revisar alcance, sistema constructivo o presupuesto antes de reevaluar."],
-  "DESCARTAR|OPTIMISTA": ["No viable por calidad del anteproyecto", "bad", "El costo está en rango, pero los criterios o la norma fallan: rediseño conceptual conservando lo que funciona en costo."],
-  "DESCARTAR|MODERADO":  ["No viable por calidad del anteproyecto", "bad", "El costo es manejable, pero los criterios o la norma fallan: rediseño conceptual."],
-  "DESCARTAR|CRÍTICO":   ["No viable", "bad", "Descartar y documentar los criterios deficientes."]
+  "APROBAR|OPTIMISTA": ["Viable", "ok", "Avanzar al diseño ejecutivo.", 1],
+  "APROBAR|MODERADO":  ["Viable con reserva", "ok", "Avanzar comprometiendo la reserva para imprevistos y trabajar los puntos de revisión del riesgo.", 2],
+  "APROBAR|CRÍTICO":   ["Ajustar antes de avanzar", "warn", "La alternativa es sólida, pero su costo proyectado supera presupuesto y reserva: revisar costo estimado, alcance o calificación financiera antes de avanzar.", 5],
+  "AJUSTAR|OPTIMISTA": ["Ajustable", "warn", "Corregir los criterios con 3 o menos en máximo 15 días hábiles y reevaluar.", 3],
+  "AJUSTAR|MODERADO":  ["Ajustable con reserva", "warn", "Corregir los criterios con 3 o menos y prever el uso de la reserva.", 4],
+  "AJUSTAR|CRÍTICO":   ["Ajuste mayor", "bad", "Revisar alcance, sistema constructivo o presupuesto antes de reevaluar.", 6],
+  "DESCARTAR|OPTIMISTA": ["No viable por calidad del anteproyecto", "bad", "El costo está en rango, pero los criterios o la norma fallan: rediseño conceptual conservando lo que funciona en costo.", 9],
+  "DESCARTAR|MODERADO":  ["No viable por calidad del anteproyecto", "bad", "El costo es manejable, pero los criterios o la norma fallan: rediseño conceptual.", 9],
+  "DESCARTAR|CRÍTICO":   ["No viable", "bad", "Descartar y documentar los criterios deficientes.", 9]
 };
+/* Nota de impacto en costos según la rúbrica: costo estimado / costo objetivo */
+const objetivoDe = () => { const o = num(S.proyecto.objetivo); return isFinite(o) && o > 0 ? o : num(S.proyecto.presupuesto); };
+const notaCosto = pct => pct <= 90 ? 5 : pct <= 100 ? 4 : pct <= 110 ? 3 : pct <= 125 ? 2 : 1;
 const resultado = (dec, esc) => dec && esc ? RESULTADOS[dec + "|" + esc] : null;
 const resTag = r => r ? `<span class="tag ${r[1]}">${r[0]}</span>` : `<span class="tag neutral">Sin datos</span>`;
 const decTag = d => d ? `<span class="tag ${d==="APROBAR"?"ok":d==="AJUSTAR"?"warn":"bad"}">${d[0]+d.slice(1).toLowerCase()}</span>` : `<span class="tag neutral">Incompleta</span>`;
@@ -156,7 +159,8 @@ V["1a"] = () => {
         ${["","Vivienda unifamiliar","Vivienda multifamiliar","Institucional","Comercial","Oficinas","Salud","Educación","Mixto","Otro"].map(o=>`<option${o===p.tipologia?" selected":""} value="${o}">${o||"Seleccione"}</option>`).join("")}</select></div>
       <div class="field"><label for="p-sector">Sector</label><select id="p-sector" data-p="sector">${["Privado","Público"].map(o=>`<option${o===p.sector?" selected":""}>${o}</option>`).join("")}</select></div>
       ${f("presupuesto","Presupuesto disponible (COP)","text",'inputmode="numeric" placeholder="Ej. 4500000000"')}
-      ${f("reserva","Reserva para imprevistos (%)","number",'min="0" max="50" step="1"')}
+      ${f("objetivo","Costo objetivo (COP, opcional)","text",'inputmode="numeric" placeholder="Si se deja vacío, se usa el presupuesto"')}
+      ${f("reserva","Reserva del presupuesto para imprevistos (%)","number",'min="0" max="50" step="1"')}
   </div>${p.sector==="Público"?'<p class="small muted" style="margin:0">En proyectos públicos, la viabilidad financiera se califica comparando el costo con el presupuesto disponible.</p>':''}</div>
   <div class="layout2">
     <div class="sheet">${rows}</div>
@@ -232,15 +236,18 @@ V["2"] = () => {
     <div class="sheet">
       <div class="grid2">
         <div class="field"><label for="alt-nombre">Nombre de la alternativa</label><input id="alt-nombre" type="text" data-alt-f="nombre" value="${esc(alt.nombre)}"></div>
-        <div class="field"><label for="alt-costo">Costo estimado (COP)</label><input id="alt-costo" type="text" inputmode="numeric" data-alt-f="costo" value="${esc(alt.costo)}" placeholder="Ej. 4200000000"></div>
+        <div class="field"><label for="alt-costo">Costo estimado sin imprevistos (COP)</label><input id="alt-costo" type="text" inputmode="numeric" data-alt-f="costo" value="${esc(alt.costo)}" placeholder="Ej. 4200000000"></div>
       </div>
+      ${(() => { const ce = num(alt.costo), ob = objetivoDe(); if (!isFinite(ce) || !isFinite(ob)) return `<p class="small muted" style="margin-top:-6px">Registre el costo sin imprevistos: la contingencia la agrega la Matriz 3.</p>`;
+        const pct = ce/ob*100, n = notaCosto(pct), cur = alt.det ? null : alt.q.costos;
+        return `<p class="notice" style="margin-top:-4px">Costo estimado = <strong>${fmt(pct,1)} %</strong> del costo objetivo (${money(ob)}${isFinite(num(S.proyecto.objetivo))&&num(S.proyecto.objetivo)>0?"":", igual al presupuesto"}). Según la rúbrica, la nota de impacto en costos es <strong>${n}</strong>.${cur && cur !== n ? ` <span class="tag warn">Usted marcó ${cur}</span> <button type="button" class="btn ghost sm" data-usenota="${n}">Usar ${n}</button>` : ""}<br><span class="small">Registre el costo sin imprevistos: la contingencia la agrega la Matriz 3.</span></p>`; })()}
       <label class="switch"><input type="checkbox" id="det"${alt.det?" checked":""}> Detallar con los 20 componentes (4 por criterio)</label>
       ${blocks}
       ${S.alternativas.length>1?`<p style="margin-top:18px"><button class="btn ghost sm" id="del-alt">Eliminar esta alternativa</button></p>`:""}
     </div>
     <div>
       <div class="result" style="--cols:2"><div><div class="k">Puntaje ponderado</div><div class="v num">${ev.answered?fmt(ev.total):"—"}<small> / 5</small></div></div>
-        <div><div class="k">Decisión preliminar</div><div class="v" style="font-size:1rem;padding-top:10px">${decTag(ev.dec)}</div></div></div>
+        <div><div class="k">Decisión preliminar (solo Matriz 2)</div><div class="v" style="font-size:1rem;padding-top:10px">${decTag(ev.dec)}</div></div></div>
       <p class="small">${ev.complete ? esc(ev.motivo) : `Faltan ${5-ev.answered} de 5 criterios por calificar.`}</p>
       <div class="sheet"><h3>Comparación por criterio</h3>${legend}${chart}
         <h3 style="margin-top:14px">Puntaje ponderado total</h3>${chartT}</div>
@@ -309,8 +316,8 @@ V["3"] = () => {
   });
   const okAll = checks.every(c=>c.ok);
   return `${head("3","Escenarios y verificación","Proyecta el costo de cada alternativa según su nivel de riesgo y lo compara con el presupuesto y la reserva para imprevistos. Además verifica que la información esté completa y sea coherente entre matrices. Son proyecciones para orientar la decisión, no resultados de obra.")}
-  <div class="sheet scroll-x"><table class="tbl"><thead><tr><th>Alternativa</th><th class="r">Costo estimado</th><th class="r">Riesgo (M2)</th><th class="r">Contingencia</th><th class="r">Costo proyectado</th><th class="r">Frente al presupuesto</th><th>Escenario</th><th>Resultado</th></tr></thead><tbody>${rows}</tbody></table>
-  <p class="small muted" style="margin-top:10px">Contingencia = ${M.m3.cMin} % + (5 − puntaje de riesgo) / 4 × ${M.m3.cMax-M.m3.cMin} %. Un riesgo de 5 implica ${M.m3.cMin} % y un riesgo de 1 implica ${M.m3.cMax} %. Costo proyectado = costo estimado × (1 + contingencia). <strong>Optimista</strong>: queda dentro del presupuesto. <strong>Moderado</strong>: lo supera, pero la reserva lo cubre. <strong>Crítico</strong>: supera presupuesto y reserva.</p>
+  <div class="sheet scroll-x"><table class="tbl"><thead><tr><th>Alternativa</th><th class="r">Costo estimado</th><th class="r">Riesgo (M2)</th><th class="r">Contingencia</th><th class="r">Costo proyectado</th><th class="r">Frente al presupuesto</th><th>Escenario</th><th>Recomendación final</th></tr></thead><tbody>${rows}</tbody></table>
+  <p class="small muted" style="margin-top:10px">Regla heurística del modelo (no es una probabilidad): contingencia = ${M.m3.cMin} % + (5 − puntaje de riesgo) / 4 × ${M.m3.cMax-M.m3.cMin} %. Un riesgo de 5 implica ${M.m3.cMin} % y un riesgo de 1 implica ${M.m3.cMax} %. Costo proyectado = costo estimado sin imprevistos × (1 + contingencia). La contingencia la calcula el modelo según el riesgo; la reserva es lo que el presupuesto ya aparta para imprevistos. <strong>Optimista</strong>: queda dentro del presupuesto. <strong>Moderado</strong>: lo supera, pero la reserva lo cubre. <strong>Crítico</strong>: supera presupuesto y reserva.</p>
   <details class="small" style="margin-top:8px"><summary><strong>Matriz de resultados</strong>: cómo se combina la decisión de la Matriz 2 con el escenario</summary>
   <table class="tbl" style="margin-top:8px"><thead><tr><th>Decisión (M2)</th><th>Escenario (M3)</th><th>Resultado</th><th>Acción</th></tr></thead><tbody>
   ${Object.entries(RESULTADOS).map(([k,r])=>{ const [d,e]=k.split("|"); return `<tr><td>${d[0]+d.slice(1).toLowerCase()}</td><td>${e[0]+e.slice(1).toLowerCase()}</td><td>${resTag(r)}</td><td>${esc(r[2])}</td></tr>`; }).join("")}</tbody></table></details></div>
@@ -325,17 +332,16 @@ V["3"] = () => {
 V["4"] = () => {
   const p = S.proyecto, r1a = imo(), rk = ranking().slice(0,5);
   const evs = S.alternativas.map(evalAlt), sc = S.alternativas.map((a,i)=>scenario(a,evs[i]));
-  const order = { "OPTIMISTA":0, "MODERADO":1, "CRÍTICO":2 };
-  const cands = S.alternativas.map((a,i)=>({a,i,e:evs[i],s:sc[i]})).filter(x => x.e.dec && x.e.dec !== "DESCARTAR")
-    .sort((x,y) => (x.e.dec==="APROBAR"?0:1)-(y.e.dec==="APROBAR"?0:1) || (order[x.s?.esc]??3)-(order[y.s?.esc]??3) || y.e.total-x.e.total);
+  const cands = S.alternativas.map((a,i)=>({a,i,e:evs[i],s:sc[i],r:resultado(evs[i].dec, sc[i]?.esc)})).filter(x => x.r && x.r[3] < 9)
+    .sort((x,y) => x.r[3]-y.r[3] || y.e.total-x.e.total);
   const sug = cands[0];
   const m2rows = S.alternativas.map((a,i)=>`<tr><td>${esc(a.nombre)}</td>${M.criterios.map(c=>`<td class="r num">${isFinite(evs[i].crit[c.id])?fmt(evs[i].crit[c.id]):"—"}</td>`).join("")}<td class="r num"><strong>${evs[i].answered?fmt(evs[i].total):"—"}</strong></td><td>${decTag(evs[i].dec)}</td><td>${escTag(sc[i]?.esc)}</td><td>${resTag(resultado(evs[i].dec, sc[i]?.esc))}</td></tr>`).join("");
   const just = S.alternativas.map((a,i)=>{ const e = evs[i]; if(!e.dec) return "";
-    let t = `<p><strong>${esc(a.nombre)} — ${e.dec.toLowerCase()}.</strong> ${esc(e.motivo)} `;
+    let t = `<p><strong>${esc(a.nombre)}.</strong> Decisión preliminar de la Matriz 2: <strong>${e.dec.toLowerCase()}</strong>. ${esc(e.motivo)} `;
     if (e.dec==="AJUSTAR") t += `Ajustar: ${e.criticos.concat(e.revisar).map(k=>k.nombre).join("; ")||"criterios con 3 o menos"}. Plazo máximo de revisión: ${M.decision.plazoAjuste}.`;
     if (e.dec==="DESCARTAR") t += `Puntos deficientes: ${e.criticos.map(k=>k.nombre).join("; ")||"puntaje global insuficiente"}. Se recomienda rediseño conceptual o cambio de enfoque.`;
-    if (e.dec==="APROBAR") t += `Proceder al diseño ejecutivo.${e.revisar.length?` Atender durante el desarrollo: ${e.revisar.map(k=>k.nombre).join("; ")}.`:""}`;
-    const rr = resultado(e.dec, sc[i]?.esc); if (rr) t += ` <strong>Resultado: ${rr[0].toLowerCase()}.</strong> ${rr[2]}`;
+    if (e.dec==="APROBAR" && e.revisar.length) t += `Puntos de revisión: ${e.revisar.map(k=>k.nombre).join("; ")}.`;
+    const rr = resultado(e.dec, sc[i]?.esc); if (rr) t += ` Con el escenario de costo (${sc[i].esc.toLowerCase()}), la <strong>recomendación final es: ${rr[0].toLowerCase()}</strong>. ${rr[2]}`;
     return t + "</p>"; }).join("");
   return `${head("4","Decisión y trazabilidad","Consolida las matrices anteriores en un registro único: qué se evaluó, cómo se calificó, qué se decidió y por qué. Imprímalo o guárdelo como PDF para el acta del proyecto.")}
   <div class="no-print" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap"><button class="btn" id="btn-print">Descargar reporte en PDF</button><button class="btn ghost" id="btn-guardar2">Guardar proyecto</button></div>
@@ -345,6 +351,7 @@ V["4"] = () => {
     <div class="rep-block"><div>Empresa o entidad</div><div>${esc(p.empresa)||"—"}</div>
       <div>Tipología / sector</div><div>${esc(p.tipologia)||"—"} · ${esc(p.sector)}</div>
       <div>Presupuesto disponible</div><div class="num">${money(num(p.presupuesto))} · reserva ${esc(p.reserva)} %</div>
+      <div>Costo objetivo</div><div class="num">${money(objetivoDe())}${isFinite(num(p.objetivo))&&num(p.objetivo)>0?"":" (igual al presupuesto)"}</div>
       <div>Responsable</div><div>${esc(p.responsable)||"—"}</div><div>Fecha</div><div>${esc(p.fecha)}</div></div>
 
     <h3>Matriz 1A · Diagnóstico organizacional</h3>
@@ -355,7 +362,7 @@ V["4"] = () => {
     ${rk.length?`<table class="tbl"><thead><tr><th>#</th><th>Factor</th><th>Criterio asociado</th><th class="r">IC</th></tr></thead><tbody>${rk.map((f,i)=>`<tr><td>${i+1}</td><td>${esc(f.txt)}</td><td>${esc(M.criterios.find(c=>c.id===f.criterio).nombre)}</td><td class="r num">${f.ic}</td></tr>`).join("")}</tbody></table>`:"<p class='muted'>Sin diligenciar.</p>"}
 
     <h3>Matriz 2 · Evaluación integral</h3>
-    <div class="scroll-x"><table class="tbl"><thead><tr><th>Alternativa</th>${M.criterios.map(c=>`<th class="r">${c.corto}<br><span class="small muted">${S.pesos[c.id]} %</span></th>`).join("")}<th class="r">Total</th><th>Decisión</th><th>Escenario</th><th>Resultado</th></tr></thead><tbody>${m2rows}</tbody></table></div>
+    <div class="scroll-x"><table class="tbl"><thead><tr><th>Alternativa</th>${M.criterios.map(c=>`<th class="r">${c.corto}<br><span class="small muted">${S.pesos[c.id]} %</span></th>`).join("")}<th class="r">Total</th><th>Decisión preliminar (M2)</th><th>Escenario (M3)</th><th>Recomendación final</th></tr></thead><tbody>${m2rows}</tbody></table></div>
     <p class="small muted">Ponderaciones: ${esc(S.pesosFuente)}.</p>
 
     <h3>Matriz 3 · Escenarios</h3>
@@ -363,7 +370,7 @@ V["4"] = () => {
 
     <h3>Justificación por alternativa</h3>
     ${just || "<p class='muted'>Complete la Matriz 2 para generar la justificación.</p>"}
-    ${sug?`<div class="notice">Alternativa sugerida por el instrumento: <strong>${esc(sug.a.nombre)}</strong> (${sug.e.dec.toLowerCase()}, puntaje ${fmt(sug.e.total)}${sug.s?.esc?", escenario "+sug.s.esc.toLowerCase():""}). La decisión final corresponde al responsable del proyecto.</div>`:""}
+    ${sug?`<div class="notice">Recomendación del instrumento: <strong>${esc(sug.a.nombre)}</strong>, ${sug.r[0].toLowerCase()} (puntaje ${fmt(sug.e.total)}, escenario ${sug.s.esc.toLowerCase()}). ${sug.r[2]} La decisión final corresponde al responsable del proyecto.</div>`:(S.alternativas.some(a=>evalAlt(a).dec)?`<div class="notice warn">Ninguna alternativa queda en condición de avanzar. Se recomienda rediseño.</div>`:"")}
 
     <h3>Decisión del responsable</h3>
     <div class="field"><label for="m4-elegida">Alternativa seleccionada</label><select id="m4-elegida" data-m4="elegida"><option value="">Seleccione</option>${S.alternativas.map(a=>`<option${a.nombre===S.m4.elegida?" selected":""}>${esc(a.nombre)}</option>`).join("")}<option${S.m4.elegida==="Ninguna (rediseño)"?" selected":""}>Ninguna (rediseño)</option></select></div>
@@ -397,6 +404,7 @@ function bind(v){
   });
   v.querySelectorAll("[data-q]").forEach(b => b.onclick = () => { const a = S.alternativas[S.alt], c = b.dataset.q, val = +b.dataset.v;
     a.q[c] = a.q[c]===val ? undefined : val; save(); rerenderKeepScroll(); document.querySelector(`[data-q="${c}"][data-v="${val}"]`)?.focus(); });
+  v.querySelectorAll("[data-usenota]").forEach(b => b.onclick = () => { S.alternativas[S.alt].q.costos = +b.dataset.usenota; save(); rerenderKeepScroll(); });
   const det = v.querySelector("#det"); if (det) det.onchange = () => { const a = S.alternativas[S.alt]; a.det = det.checked;
     if (a.det) M.criterios.forEach(c => { if (a.q[c.id]) c.componentes.forEach(k => { if (!a.s[k.id]) a.s[k.id] = a.q[c.id]; }); });
     save(); rerenderKeepScroll(); };
@@ -455,16 +463,16 @@ document.getElementById("btn-ejemplo").onclick = () => { S = example(); save(); 
 function example(){
   const e = blank();
   Object.assign(e.proyecto, { nombre:"Edificio multifamiliar Los Samanes (ejemplo)", empresa:"Constructora de ejemplo S.A.S.",
-    tipologia:"Vivienda multifamiliar", sector:"Privado", responsable:"Gerente de proyecto", presupuesto:"9500000000", reserva:10 });
+    tipologia:"Vivienda multifamiliar", sector:"Privado", responsable:"Gerente de proyecto", presupuesto:"9500000000", objetivo:"9500000000", reserva:10 });
   [3,3,2,2,2].forEach((v,i) => e.m1a["1A-0"+(i+1)] = v);
   const fi = [[4,5],[4,4],[4,5],[4,4],[3,4],[3,5],[3,5],[3,4],[3,4],[2,3]];
   e.m1b.forEach((f,i) => { f.f = fi[i][0]; f.i = fi[i][1]; f.on = true; });
   const ids = M.criterios.map(c => c.id);
   const mk = (nombre, costo, arr) => ({ nombre, costo, q: Object.fromEntries(ids.map((id,i)=>[id,arr[i]])), s:{}, det:false });
   e.alternativas = [
-    mk("A · Concreto convencional", "8700000000", [4,5,3,5,4]),
-    mk("B · Estructura metálica importada", "9300000000", [3,3,3,4,3]),
-    mk("C · Prefabricado no convencional", "10400000000", [2,2,4,3,2])
+    mk("A · Concreto convencional", "8500000000", [4,5,3,5,4]),
+    mk("B · Estructura metálica importada", "9900000000", [3,3,3,4,3]),
+    mk("C · Prefabricado no convencional", "10800000000", [2,2,4,3,2])
   ];
   e.step = 2;
   return e;
