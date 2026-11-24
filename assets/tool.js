@@ -20,7 +20,7 @@ function blank(){
     m1a: {},
     m1b: M.m1b.factores.map(f => ({...f, f:0, i:0})),
     pesos: Object.fromEntries(M.criterios.map(c => [c.id, c.peso])),
-    pesosFuente: "Ponderaciones preliminares del documento",
+    pesosFuente: "Ponderaciones del documento",
     alternativas: [ newAlt(0) ],
     m4: { elegida:"", justificacion:"" }
   };
@@ -424,7 +424,7 @@ function bind(v){
     i.onchange = () => rerenderKeepScroll();
   });
   v.querySelectorAll("[data-w]").forEach(i => i.onchange = () => { S.pesos[i.dataset.w] = Math.max(0, +i.value||0); S.pesosFuente = "Ponderaciones ajustadas por el usuario"; save(); rerenderKeepScroll(); });
-  const wr = v.querySelector("#w-reset"); if (wr) wr.onclick = () => { M.criterios.forEach(c => S.pesos[c.id] = c.peso); S.pesosFuente = "Ponderaciones preliminares del documento"; save(); rerenderKeepScroll(); };
+  const wr = v.querySelector("#w-reset"); if (wr) wr.onclick = () => { M.criterios.forEach(c => S.pesos[c.id] = c.peso); S.pesosFuente = "Ponderaciones del documento"; save(); rerenderKeepScroll(); };
   const wp = v.querySelector("#w-panel"); if (wp) wp.onclick = async () => {
     try { const r = await fetch("/resultados/resultados.json", {cache:"no-store"}); const d = await r.json();
       if (!d.pesos || !d.n) { wp.textContent = "El panel aún no tiene resultados"; return; }

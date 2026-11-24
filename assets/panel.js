@@ -40,8 +40,8 @@ function curAHP(){
 }
 function updAHP(){
   const r = curAHP();
-  document.getElementById("ahp-chart").innerHTML = `<div class="legend"><span><i style="background:#1F62A8"></i>Sus pesos</span><span><i style="background:#B9C4C3"></i>Preliminares del documento</span></div>` +
-    hbarChart({ rows: C.map((c,i)=>({label:c.corto, values:[{v:r.w[i]*100, color:"#1F62A8", name:"Su peso", d:1},{v:c.peso, color:"#B9C4C3", name:"Preliminar", d:0}]})),
+  document.getElementById("ahp-chart").innerHTML = `<div class="legend"><span><i style="background:#1F62A8"></i>Sus pesos</span><span><i style="background:#B9C4C3"></i>Ponderación del documento</span></div>` +
+    hbarChart({ rows: C.map((c,i)=>({label:c.corto, values:[{v:r.w[i]*100, color:"#1F62A8", name:"Su peso", d:1},{v:c.peso, color:"#B9C4C3", name:"Documento", d:0}]})),
       max:50, ticks:[0,10,20,30,40,50], unit:" %", labelW:100, width:480, fs:13 });
   Tip.bind(document.getElementById("ahp-chart"));
   const crEl = document.getElementById("ahp-cr");

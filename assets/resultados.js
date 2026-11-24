@@ -34,13 +34,13 @@ function count(a){ return a.reduce((o,x)=>{ if(x) o[x]=(o[x]||0)+1; return o; },
 function view(d){
   const out = document.getElementById("out");
   if (!d || !d.n){
-    out.innerHTML = `<div class="notice">El panel está en curso. Todavía no hay respuestas consolidadas. Mientras tanto, la herramienta usa las ponderaciones preliminares del documento.</div>
-      <div class="sheet"><h3>Ponderaciones preliminares</h3>${hbarChart({rows:C.map(c=>({label:c.nombre,values:[{v:c.peso,color:"#B9C4C3",name:"Preliminar",d:0}]})),max:40,ticks:[0,10,20,30,40],unit:" %",labelW:180,width:620})}
+    out.innerHTML = `<div class="notice">El procedimiento de validación está listo y publicado. Todavía no hay respuestas consolidadas, así que la herramienta usa las ponderaciones del documento.</div>
+      <div class="sheet"><h3>Ponderaciones del documento</h3>${hbarChart({rows:C.map(c=>({label:c.nombre,values:[{v:c.peso,color:"#B9C4C3",name:"Documento",d:0}]})),max:40,ticks:[0,10,20,30,40],unit:" %",labelW:180,width:620})}
       <p><a class="btn" href="/validacion/">Participar en el panel</a></p></div>`;
     Tip.bind(out); return;
   }
   const t = umbral(d.n);
-  const chart = hbarChart({ rows: C.map(c => ({label:c.nombre, values:[{v:d.pesos[c.id],color:"#1F62A8",name:"Panel AHP",d:1},{v:c.peso,color:"#B9C4C3",name:"Preliminar",d:0}]})), max:50, ticks:[0,10,20,30,40,50], unit:" %", labelW:180, width:640 });
+  const chart = hbarChart({ rows: C.map(c => ({label:c.nombre, values:[{v:d.pesos[c.id],color:"#1F62A8",name:"Panel AHP",d:1},{v:c.peso,color:"#B9C4C3",name:"Documento",d:0}]})), max:50, ticks:[0,10,20,30,40,50], unit:" %", labelW:180, width:640 });
   const ivcRows = ITEMS.map(it => { const v = d.ivc[it.id]; const ok = v !== null && v >= t;
     return `<tr><td>${esc(it.name)}</td>
       <td class="r num">${v===null?"—":fmt(v,2)}</td><td>${v===null?"":ok?'<span class="ivc-ok">Aceptado</span>':'<span class="ivc-bad">Revisar</span>'}</td></tr>`; }).join("");
@@ -55,8 +55,8 @@ function view(d){
     <p class="small muted">Actualizado: ${esc(d.fecha)}. ${d.nAgregados < d.n ? `Para los pesos se agregaron los ${d.nAgregados} expertos con RC &lt; 0,10.` : "Para los pesos se agregaron todas las respuestas."} Umbral de aceptación del IVC con ${d.n} expertos: ${fmt(t,2)}.</p>
     <div class="layout2">
       <div class="sheet"><h3>Ponderaciones de los criterios</h3>
-        <div class="legend"><span><i style="background:#1F62A8"></i>Panel AHP</span><span><i style="background:#B9C4C3"></i>Preliminar del documento</span></div>${chart}
-        <table class="tbl" style="margin-top:12px"><thead><tr><th>Criterio</th><th class="r">Preliminar</th><th class="r">Panel</th><th class="r">Diferencia</th></tr></thead><tbody>
+        <div class="legend"><span><i style="background:#1F62A8"></i>Panel AHP</span><span><i style="background:#B9C4C3"></i>Ponderación del documento</span></div>${chart}
+        <table class="tbl" style="margin-top:12px"><thead><tr><th>Criterio</th><th class="r">Documento</th><th class="r">Panel</th><th class="r">Diferencia</th></tr></thead><tbody>
         ${C.map(c=>`<tr><td>${c.nombre}</td><td class="r num">${c.peso} %</td><td class="r num">${fmt(d.pesos[c.id],1)} %</td><td class="r num">${(d.pesos[c.id]-c.peso>0?"+":"")+fmt(d.pesos[c.id]-c.peso,1)}</td></tr>`).join("")}</tbody></table></div>
       <div class="sheet"><h3>Perfil del panel</h3>
         <p>Experiencia promedio: <strong>${fmt(d.perfil.aniosProm,1)} años</strong>.</p>
